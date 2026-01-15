@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient } from "@prisma/client";
+import pkg from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
 import { neonConfig } from "@neondatabase/serverless";
 
@@ -13,6 +13,8 @@ neonConfig.poolQueryViaFetch = true;
 // declare global {
 //   var prisma: PrismaClient | undefined
 // }
+
+const { PrismaClient } = pkg;
 
 const connectionString = `${process.env.DATABASE_URL}`;
 

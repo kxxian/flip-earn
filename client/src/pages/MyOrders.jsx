@@ -9,8 +9,15 @@ import {
   Loader2Icon,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useAuth, useUser } from "@clerk/clerk-react";
+import { useDispatch } from "react-redux";
+import api from "../configs/axios";
 
 const MyOrders = () => {
+  const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
+  const dispatch = useDispatch();
+
   const currency = import.meta.env.VITE_CURRENCY || "$";
 
   const [orders, setOrders] = useState([]);
@@ -19,12 +26,28 @@ const MyOrders = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
-      setOrders(dummyOrders);
-      setLoading(false);
+      // setOrders(dummyOrders);
+      // setLoading(false);
+
+      try {
+        setLoading(true);
+        const token = await getToken();
+        const { data } = await api.get("/api/listing/user-orders", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setOrders(data.orders);
+      } catch (error) {
+        console.log(`Error: ${error}`);
+        toast.error(error?.response?.data?.message || error.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    fetchOrders();
-  }, []);
+    if (user && isLoaded) {
+      fetchOrders();
+    }
+  }, [getToken, isLoaded, user]);
 
   const mask = (val, type) => {
     if (!val && val !== 0) return "-";

@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   ChevronLeftIcon,
   ChevronRightIcon,
+  DollarSign,
   Eye,
   LineChart,
   Loader2Icon,
@@ -18,9 +19,15 @@ import {
 } from "lucide-react";
 import { setChat } from "../app/features/chatSlice";
 import { useState } from "react";
+import { useAuth, useClerk, useUser } from "@clerk/clerk-react";
+import toast from "react-hot-toast";
+import api from "../configs/axios";
 
 const ListingDetails = () => {
   const dispatch = useDispatch();
+  const { user, isLoaded } = useUser();
+  const { openSignIn } = useClerk();
+  const { getToken } = useAuth();
 
   const currency = import.meta.env.VITE_CURRENCY || "$";
   const navigate = useNavigate();
@@ -37,9 +44,32 @@ const ListingDetails = () => {
   const { listings } = useSelector((state) => state.listing);
   const listing = listings.find((listing) => listing.id === listingId) ?? null;
 
-  const purchaseAccount = async () => {};
+  const purchaseAccount = async () => {
+    try {
+      if (!user) {
+        return openSignIn();
+      }
+      toast.loading("creating payment link...");
+
+      const token = await getToken();
+      const { data } = await api.get(
+        `api/listing/purchase-account/${listing.id}`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+
+      toast.dismissAll();
+      window.location.href = data.paymentLink;
+    } catch (error) {
+      toast.dismissAll();
+      toast.error(error?.response?.data?.message || error.message);
+      console.log(`Error: ${error}`);
+    }
+  };
 
   const loadChatbox = () => {
+    if (!isLoaded || !user) return toast("Please login to chat with seller");
+    if (user.id === listing.ownerId)
+      return toast("You can't chat with your own listing");
     dispatch(setChat({ listing: listing }));
   };
 
@@ -93,7 +123,7 @@ const ListingDetails = () => {
                     )}
                     {listing.monetized && (
                       <span className="flex items-center text-xs bg-green-50 text-green-600 px-2 py-1 rounded-md">
-                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        <DollarSign className="w-3 h-3 mr-1" />
                         Monetized
                       </span>
                     )}

@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import prisma from "../configs/prisma.js";
 import { inngest } from "../inngest/index.js";
 
-export const stripeWebhook = async (req, res) => {
+export const stripeWebhook = async (request, response) => {
   const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY);
 
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -67,7 +67,7 @@ export const stripeWebhook = async (req, res) => {
       response.json({ received: true });
     } catch (error) {
       console.log("Webhook processing error:", error);
-      res.status(500).send("Internal server error");
+      response.status(500).send("Internal server error");
     }
   }
 };

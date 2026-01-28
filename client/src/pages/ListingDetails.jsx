@@ -53,7 +53,7 @@ const ListingDetails = () => {
 
       const token = await getToken();
       const { data } = await api.get(
-        `api/listing/purchase-account/${listing.id}`,
+        `/api/listing/purchase-account/${listing.id}`,
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
